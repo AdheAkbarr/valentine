@@ -12,6 +12,439 @@ let sceneInitialized = {};
 let PHOTOS = { bloom:[], timeline:[], gift:[], letter:[], gallery:[] };
 let CONFIG = { name:"Angelina Meirella", age:22, date:"May 13, 2026", signature:"Your BB ♥" };
 
+/* ═══════════════════════════════════════════════
+   PROCEDURAL SOUND FX ENGINE (Web Audio API)
+   ═══════════════════════════════════════════════ */
+let audioCtx = null;
+let sfxMasterGain = null;
+let sfxEnabled = true;
+const activeAmbient = {}; // track ambient loops per scene
+
+function ensureAudioCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        sfxMasterGain = audioCtx.createGain();
+        sfxMasterGain.gain.value = 0.6;
+        sfxMasterGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+
+/* ─── Utility: create noise buffer ─── */
+function createNoiseBuffer(dur) {
+    const ctx = ensureAudioCtx();
+    const len = ctx.sampleRate * dur;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    return buf;
+}
+
+/* ─── SFX: Rain ambient ─── */
+function startRain() {
+    const ctx = ensureAudioCtx();
+    if (activeAmbient.rain) return;
+
+    // White noise → bandpass filter = rain
+    const noiseBuf = createNoiseBuffer(2);
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBuf;
+    src.loop = true;
+
+    const bandpass = ctx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.value = 800;
+    bandpass.Q.value = 0.5;
+
+    const hipass = ctx.createBiquadFilter();
+    hipass.type = 'highpass';
+    hipass.frequency.value = 200;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 1.5);
+
+    src.connect(bandpass).connect(hipass).connect(gain).connect(sfxMasterGain);
+    src.start();
+    activeAmbient.rain = { src, gain };
+
+    // Random thunder rumbles
+    activeAmbient.rainThunderInterval = setInterval(() => {
+        if (!sfxEnabled || !activeAmbient.rain) return;
+        if (Math.random() > 0.5) playThunder();
+    }, 4000);
+}
+
+function fadeRain() {
+    if (!activeAmbient.rain) return;
+    const ctx = ensureAudioCtx();
+    const { gain, src } = activeAmbient.rain;
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.5);
+    setTimeout(() => { try { src.stop(); } catch(e){} }, 3000);
+    clearInterval(activeAmbient.rainThunderInterval);
+    activeAmbient.rain = null;
+}
+
+/* ─── SFX: Thunder ─── */
+function playThunder() {
+    const ctx = ensureAudioCtx();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 40 + Math.random() * 30;
+
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.25 + Math.random() * 0.15, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8 + Math.random());
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 100;
+
+    osc.connect(filter).connect(gain).connect(sfxMasterGain);
+    osc.start(now);
+    osc.stop(now + 2.5);
+}
+
+/* ─── SFX: Sparkle Chime (used for name reveal, bloom, etc.) ─── */
+function playSparkle() {
+    const ctx = ensureAudioCtx();
+    const notes = [1200, 1600, 2000, 2400, 1800]; // high sparkly frequencies
+    const now = ctx.currentTime;
+    notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq + Math.random() * 200;
+        const gain = ctx.createGain();
+        const t = now + i * 0.08;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.06, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc.connect(gain).connect(sfxMasterGain);
+        osc.start(t);
+        osc.stop(t + 0.6);
+    });
+}
+
+/* ─── SFX: Bloom/Magic Rising ─── */
+function playBloomSound() {
+    const ctx = ensureAudioCtx();
+    const now = ctx.currentTime;
+    // Rising tone
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 2);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.12, now + 0.5);
+    gain.gain.linearRampToValueAtTime(0.08, now + 1.5);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+    osc.connect(gain).connect(sfxMasterGain);
+    osc.start(now); osc.stop(now + 3.5);
+    // Layered chimes
+    setTimeout(() => playSparkle(), 800);
+    setTimeout(() => playSparkle(), 1600);
+}
+
+/* ─── SFX: Scene Transition Whoosh ─── */
+function playWhoosh() {
+    const ctx = ensureAudioCtx();
+    const buf = createNoiseBuffer(0.8);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 500;
+    filter.Q.value = 1.5;
+    // Sweep frequency up
+    const now = ctx.currentTime;
+    filter.frequency.setValueAtTime(200, now);
+    filter.frequency.exponentialRampToValueAtTime(3000, now + 0.4);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    src.connect(filter).connect(gain).connect(sfxMasterGain);
+    src.start(now); src.stop(now + 0.8);
+}
+
+/* ─── SFX: Gift Shake ─── */
+function playGiftShake() {
+    const ctx = ensureAudioCtx();
+    const now = ctx.currentTime;
+    for (let i = 0; i < 5; i++) {
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = 100 + Math.random() * 60;
+        const gain = ctx.createGain();
+        const t = now + i * 0.12;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.08, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+        osc.connect(gain).connect(sfxMasterGain);
+        osc.start(t); osc.stop(t + 0.12);
+    }
+}
+
+/* ─── SFX: Gift Pop (lid flies off) ─── */
+function playGiftPop() {
+    const ctx = ensureAudioCtx();
+    const now = ctx.currentTime;
+    // Pop
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.connect(gain).connect(sfxMasterGain);
+    osc.start(now); osc.stop(now + 0.35);
+    // Burst noise
+    const buf = createNoiseBuffer(0.3);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const ngain = ctx.createGain();
+    ngain.gain.setValueAtTime(0.15, now);
+    ngain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 2000;
+    src.connect(hp).connect(ngain).connect(sfxMasterGain);
+    src.start(now); src.stop(now + 0.3);
+}
+
+/* ─── SFX: Confetti Celebration ─── */
+function playConfettiSound() {
+    const ctx = ensureAudioCtx();
+    const now = ctx.currentTime;
+    // Rising celebration arpeggio
+    const notes = [523, 659, 784, 1047, 1319, 1568]; // C5 E5 G5 C6 E6 G6
+    notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        const gain = ctx.createGain();
+        const t = now + i * 0.06;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.1, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+        osc.connect(gain).connect(sfxMasterGain);
+        osc.start(t); osc.stop(t + 0.9);
+    });
+}
+
+/* ─── SFX: Envelope Paper ─── */
+function playPaperSound() {
+    const ctx = ensureAudioCtx();
+    const buf = createNoiseBuffer(0.5);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3000;
+    bp.Q.value = 2;
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.1, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    src.connect(bp).connect(gain).connect(sfxMasterGain);
+    src.start(now); src.stop(now + 0.5);
+}
+
+/* ─── SFX: Seal Break ─── */
+function playSealBreak() {
+    const ctx = ensureAudioCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.connect(gain).connect(sfxMasterGain);
+    osc.start(now); osc.stop(now + 0.3);
+}
+
+/* ─── AMBIENT: Scene 1 (Ethereal Pad) ─── */
+function startAmbientScene1() {
+    if (activeAmbient.scene1) return;
+    const ctx = ensureAudioCtx();
+    // Soft pad: two detuned oscillators
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    osc1.type = 'sine'; osc1.frequency.value = 220;
+    osc2.type = 'sine'; osc2.frequency.value = 222; // slight detune for warmth
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 2);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 400;
+    osc1.connect(lp); osc2.connect(lp);
+    lp.connect(gain).connect(sfxMasterGain);
+    osc1.start(); osc2.start();
+    activeAmbient.scene1 = { osc1, osc2, gain };
+}
+
+function stopAmbientScene1() {
+    if (!activeAmbient.scene1) return;
+    const ctx = ensureAudioCtx();
+    const { osc1, osc2, gain } = activeAmbient.scene1;
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
+    setTimeout(() => { try { osc1.stop(); osc2.stop(); } catch(e){} }, 1500);
+    activeAmbient.scene1 = null;
+}
+
+/* ─── AMBIENT: Scene 3 (Soft Musical Box) ─── */
+let scene3MelodyInterval = null;
+function startAmbientScene3() {
+    if (activeAmbient.scene3) return;
+    const ctx = ensureAudioCtx();
+    // Gentle music box melody loop
+    const melody = [523, 659, 784, 659, 523, 784, 1047, 784]; // C5 E5 G5 E5 C5 G5 C6 G5
+    let idx = 0;
+    function playNote() {
+        if (!activeAmbient.scene3) return;
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = melody[idx % melody.length];
+        const gain = ctx.createGain();
+        const now = ctx.currentTime;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.05, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        osc.connect(gain).connect(sfxMasterGain);
+        osc.start(now); osc.stop(now + 1.5);
+        idx++;
+    }
+    activeAmbient.scene3 = true;
+    playNote();
+    scene3MelodyInterval = setInterval(playNote, 1800);
+}
+
+function stopAmbientScene3() {
+    activeAmbient.scene3 = null;
+    clearInterval(scene3MelodyInterval);
+}
+
+/* ─── AMBIENT: Scene 5 (Heartbeat + Warm Pad) ─── */
+let heartbeatInterval = null;
+function startAmbientScene5() {
+    if (activeAmbient.scene5) return;
+    const ctx = ensureAudioCtx();
+    activeAmbient.scene5 = true;
+    // Warm pad
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    osc1.type = 'sine'; osc1.frequency.value = 174; // F3
+    osc2.type = 'sine'; osc2.frequency.value = 261; // C4
+    const padGain = ctx.createGain();
+    padGain.gain.value = 0;
+    padGain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 2);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 350;
+    osc1.connect(lp); osc2.connect(lp);
+    lp.connect(padGain).connect(sfxMasterGain);
+    osc1.start(); osc2.start();
+    activeAmbient.scene5pad = { osc1, osc2, gain: padGain };
+
+    // Heartbeat
+    function beat() {
+        if (!activeAmbient.scene5) return;
+        const ctx2 = ensureAudioCtx();
+        const now = ctx2.currentTime;
+        // Lub
+        const osc = ctx2.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = 60;
+        const g = ctx2.createGain();
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.12, now + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.connect(g).connect(sfxMasterGain);
+        osc.start(now); osc.stop(now + 0.25);
+        // Dub (slightly delayed)
+        const osc2b = ctx2.createOscillator();
+        osc2b.type = 'sine';
+        osc2b.frequency.value = 50;
+        const g2 = ctx2.createGain();
+        const t2 = now + 0.15;
+        g2.gain.setValueAtTime(0, t2);
+        g2.gain.linearRampToValueAtTime(0.08, t2 + 0.04);
+        g2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.2);
+        osc2b.connect(g2).connect(sfxMasterGain);
+        osc2b.start(t2); osc2b.stop(t2 + 0.25);
+    }
+    heartbeatInterval = setInterval(beat, 1200);
+}
+
+function stopAmbientScene5() {
+    activeAmbient.scene5 = null;
+    clearInterval(heartbeatInterval);
+    if (activeAmbient.scene5pad) {
+        const ctx = ensureAudioCtx();
+        const { osc1, osc2, gain } = activeAmbient.scene5pad;
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
+        setTimeout(() => { try { osc1.stop(); osc2.stop(); } catch(e){} }, 1500);
+        activeAmbient.scene5pad = null;
+    }
+}
+
+/* ─── AMBIENT: Gallery (Gentle Sparkle Loop) ─── */
+let gallerySparkleInterval = null;
+function startAmbientGallery() {
+    if (activeAmbient.gallery) return;
+    activeAmbient.gallery = true;
+    function randomChime() {
+        if (!activeAmbient.gallery) return;
+        const ctx = ensureAudioCtx();
+        const freq = 800 + Math.random() * 1200;
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const gain = ctx.createGain();
+        const now = ctx.currentTime;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.04, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        osc.connect(gain).connect(sfxMasterGain);
+        osc.start(now); osc.stop(now + 1);
+    }
+    gallerySparkleInterval = setInterval(randomChime, 2500);
+}
+
+function stopAmbientGallery() {
+    activeAmbient.gallery = null;
+    clearInterval(gallerySparkleInterval);
+}
+
+/* ─── Stop ALL ambient sounds ─── */
+function stopAllAmbient() {
+    stopAmbientScene1();
+    fadeRain();
+    stopAmbientScene3();
+    stopAmbientGallery();
+    stopAmbientScene5();
+}
+
+/* ─── SFX: Button Click ─── */
+function playButtonClick() {
+    const ctx = ensureAudioCtx();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 1000;
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.connect(gain).connect(sfxMasterGain);
+    osc.start(now); osc.stop(now + 0.1);
+}
+
 /* ─── PHOTO BUBBLE HELPERS (Comment 3) ─── */
 function spawnPhotoBubble(parent, src, opts={}) {
     const size = opts.size || (70 + Math.random()*50);
@@ -78,6 +511,8 @@ let galleryImages=[], lightboxIdx=0;
 function playSceneGallery() {
     const grid=$('#galleryGrid');
     if(!grid) return;
+    // SFX: sparkle ambient
+    startAmbientGallery();
     gsap.to('#galleryTitle',{opacity:1,y:0,duration:.9,ease:'power3.out',delay:.3});
     grid.innerHTML='';
     galleryImages = PHOTOS.gallery.map(f=>`assets/photos/gallery/${f}`);
@@ -120,6 +555,9 @@ function goToScene(n) {
     const nxtSel = typeof n === 'string' ? `#scene${n.charAt(0).toUpperCase()+n.slice(1)}` : `#scene${n}`;
     const cur = $(curSel), nxt = $(nxtSel);
     if (!nxt || currentScene === n) return;
+    // SFX: transition whoosh + stop previous ambient
+    playWhoosh();
+    stopAllAmbient();
     gsap.timeline()
         .to(cur, { opacity:0, duration:0.7, ease:"power2.inOut",
             onComplete:() => { cur.classList.remove("active"); cur.style.visibility="hidden"; }})
@@ -230,6 +668,8 @@ function burstSparkles(el) {
 
 /* ─── SCENE 1 ─── */
 function playScene1() {
+    // SFX: ethereal ambient pad
+    startAmbientScene1();
     const tl = gsap.timeline({ delay:.4 });
     tl.fromTo(".spotlight",{scale:0,opacity:0},{scale:1,opacity:1,duration:1.8,ease:"power2.out"})
       .to(".pre-title",{opacity:1,duration:1,ease:"power2.out"},"-=0.8");
@@ -252,7 +692,7 @@ function playScene1() {
     }
 
     tl.to(".title-ornament",{opacity:1,duration:.8},"-=.2")
-      .call(()=>burstSparkles($('.script-name')))
+      .call(()=>{ burstSparkles($('.script-name')); playSparkle(); })
       .to("#btnBegin",{opacity:1,scale:1,duration:.8,ease:"back.out(1.7)"},"-=.2");
 }
 
@@ -297,15 +737,17 @@ function fadeStorm() {
 function playScene2() {
     stormIntensity=1;
     initStormCanvas();
+    // SFX: start rain + thunder ambience
+    startRain();
     const tl = gsap.timeline({delay:.4});
     tl.to("#stormText1",{opacity:1,duration:1.5,ease:"power2.out"})
       .to("#stormText1",{opacity:0,duration:1,ease:"power2.in"},"+=2")
       .to("#stormText2",{opacity:1,duration:1.5,ease:"power2.out"})
       .to("#stormText2",{opacity:0,duration:1,ease:"power2.in"},"+=2")
-      .call(()=>fadeStorm())
+      .call(()=>{ fadeStorm(); fadeRain(); })
       .to("#scene2",{background:"linear-gradient(180deg,#0d2626,#004D4D,#006D6F)",duration:2.5},"+=0")
       .to("#bloomContainer",{opacity:1,duration:.5})
-      .call(()=>{ $(".flower-glow-ring").style.opacity="0.5"; })
+      .call(()=>{ $(".flower-glow-ring").style.opacity="0.5"; playBloomSound(); })
       .to(".petal.outer",{opacity:1,scale:1,duration:1.2,stagger:0.07,ease:"back.out(2)"})
       .to(".petal.mid", {opacity:1,scale:1,duration:1,  stagger:0.06,ease:"back.out(2)"},"-=0.8")
       .to(".petal.inner",{opacity:1,scale:1,duration:.8, stagger:0.05,ease:"back.out(2)"},"-=0.6")
@@ -354,6 +796,8 @@ function initParticle3() {
 /* ─── SCENE 3: ScrollTrigger Timeline ─── */
 function playScene3() {
     initParticle3();
+    // SFX: music box ambient
+    startAmbientScene3();
     const scroll = $("#scene3Scroll");
 
     // Title reveal
@@ -455,6 +899,8 @@ function playScene4() {
 function openGift() {
     if(giftOpened)return; giftOpened=true;
     const tl=gsap.timeline();
+    // SFX: shake rattle
+    playGiftShake();
     // Shake
     tl.to("#giftBox",{keyframes:[
         {rotation:-6,duration:.08},{rotation:6,duration:.08},
@@ -462,7 +908,10 @@ function openGift() {
         {rotation:0,duration:.1}]});
     // Lid flies off
     tl.to("#giftLid",{y:-140,rotation:-35,opacity:0,duration:.7,ease:"power3.out"});
+    // SFX: pop + confetti celebration
     tl.call(()=>{ 
+        playGiftPop();
+        setTimeout(()=>playConfettiSound(), 200);
         launchConfetti();
         gsap.fromTo("#scene4", {x:0,y:0}, { keyframes: [{x:-12,y:6},{x:10,y:-8},{x:-8,y:10},{x:6,y:-4},{x:0,y:0}], duration:0.5, ease:"power2.out" });
     });
@@ -555,6 +1004,8 @@ function initFireflies() {
 /* ─── SCENE 5: Love Letter ─── */
 function playScene5() {
     initFireflies();
+    // SFX: heartbeat + warm pad
+    startAmbientScene5();
     // Reset letter state in case of re-entry
     $("#letterFullscreen").style.display="none";
     $("#letterFullscreen").style.opacity="0";
@@ -575,6 +1026,9 @@ function playScene5() {
 function openEnvelope() {
     const lf=$("#letterFullscreen");
     if(lf.style.display==="flex")return;
+    // SFX: seal break + paper
+    playSealBreak();
+    setTimeout(()=>playPaperSound(), 400);
     const tl=gsap.timeline();
     tl.to("#envelopeSeal",{scale:1.6,opacity:0,duration:.4,ease:"power2.out"})
       .to("#envelopeFlap",{rotateX:180,duration:.7,ease:"power2.inOut"})
@@ -624,10 +1078,20 @@ function initAudio() {
     let playing=false;
     btn.classList.add("paused");
     btn.addEventListener("click",()=>{
-        if(playing){ music.pause(); btn.classList.add("paused"); }
-        else {
+        // Initialize AudioContext on first user interaction
+        ensureAudioCtx();
+        if(playing){
+            music.pause();
+            btn.classList.add("paused");
+            // Mute SFX too
+            if(sfxMasterGain) sfxMasterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+            sfxEnabled = false;
+        } else {
             music.play().catch(()=>{});
             btn.classList.remove("paused");
+            // Restore SFX
+            if(sfxMasterGain) sfxMasterGain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.3);
+            sfxEnabled = true;
         }
         playing=!playing;
     });
@@ -635,15 +1099,16 @@ function initAudio() {
 
 /* ─── EVENT LISTENERS ─── */
 function bindEvents() {
-    $("#btnBegin").addEventListener("click",()=>goToScene(2));
+    $("#btnBegin").addEventListener("click",()=>{ ensureAudioCtx(); playButtonClick(); goToScene(2); });
     $("#btnContinue").addEventListener("click",()=>{
+        playButtonClick();
         if(stormId)cancelAnimationFrame(stormId);
         goToScene(3);
     });
-    $("#btnGift").addEventListener("click",()=>goToScene('gallery'));
-    $("#btnToGift").addEventListener("click",()=>goToScene(4));
+    $("#btnGift").addEventListener("click",()=>{ playButtonClick(); goToScene('gallery'); });
+    $("#btnToGift").addEventListener("click",()=>{ playButtonClick(); goToScene(4); });
     $("#giftBoxWrapper").addEventListener("click",()=>openGift());
-    $("#btnLetter").addEventListener("click",()=>goToScene(5));
+    $("#btnLetter").addEventListener("click",()=>{ playButtonClick(); goToScene(5); });
     $("#envelopeWrapper").addEventListener("click",()=>openEnvelope());
     $("#letterClose").addEventListener("click",e=>{ e.stopPropagation(); closeLetter(); });
     // Gallery lightbox (Comment 8)
@@ -823,8 +1288,8 @@ async function init() {
     // Fetch photos manifest and config (Comments 2 & 9)
     try {
         const [photosRes, configRes] = await Promise.allSettled([
-            fetch('assets/photos/photos.json').then(r=>r.ok?r.json():null),
-            fetch('assets/config.json').then(r=>r.ok?r.json():null)
+            fetch(`assets/photos/photos.json?v=${Date.now()}`).then(r=>r.ok?r.json():null),
+            fetch(`assets/config.json?v=${Date.now()}`).then(r=>r.ok?r.json():null)
         ]);
         if(photosRes.status==='fulfilled' && photosRes.value){
             PHOTOS = Object.assign(PHOTOS, photosRes.value);
