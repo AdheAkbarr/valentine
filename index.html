@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 22nd Birthday, Angelina Meirella 💝</title>
+    <meta name="description" content="A special birthday celebration for Angelina Meirella's 22nd birthday">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600&family=Great+Vibes&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- SCENE 1: Grand Opening -->
+        <section id="scene1" class="scene active">
+            <canvas id="sparkleCanvas1"></canvas>
+            <div class="scene1-content">
+                <div class="spotlight"></div>
+                <p class="pre-title" id="preTitle">✦ a celebration for someone special ✦</p>
+                <h1 id="mainTitle">
+                    <span class="title-line line1"><span class="split-text">Happy <span
+                                data-config-key="age">22</span><sup>nd</sup> Birthday</span></span>
+                    <span class="title-line line2"><span class="script-name split-text" data-config-key="name">Angelina
+                            Meirella</span></span>
+                </h1>
+                <div class="title-ornament" id="titleOrnament">
+                    <span>─── ✦ ───</span>
+                </div>
+                <button id="btnBegin" class="btn-magnetic glow-pulse">
+                    <span class="btn-text">Begin the Journey</span>
+                    <span class="btn-glow"></span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- SCENE 2: Storm to Bloom -->
+        <section id="scene2" class="scene">
+            <canvas id="stormCanvas"></canvas>
+            <div class="scene2-overlay" id="scene2Overlay"></div>
+            <div class="scene2-content">
+                <div class="storm-text" id="stormText1">
+                    <p>Through every storm and every heavy rain...</p>
+                </div>
+                <div class="storm-text" id="stormText2">
+                    <p>...we always stand tall, holding each other stronger.</p>
+                </div>
+                <div class="bloom-container" id="bloomContainer">
+                    <div class="flower" id="flower">
+                        <!-- Outer glow ring -->
+                        <div class="flower-glow-ring"></div>
+                        <!-- Layer 3: Outermost petals -->
+                        <div class="petal-layer outer-layer">
+                            <div class="petal outer p-o1"></div>
+                            <div class="petal outer p-o2"></div>
+                            <div class="petal outer p-o3"></div>
+                            <div class="petal outer p-o4"></div>
+                            <div class="petal outer p-o5"></div>
+                            <div class="petal outer p-o6"></div>
+                            <div class="petal outer p-o7"></div>
+                            <div class="petal outer p-o8"></div>
+                            <div class="petal outer p-o9"></div>
+                            <div class="petal outer p-o10"></div>
+                        </div>
+                        <!-- Layer 2: Mid petals -->
+                        <div class="petal-layer mid-layer">
+                            <div class="petal mid p-m1"></div>
+                            <div class="petal mid p-m2"></div>
+                            <div class="petal mid p-m3"></div>
+                            <div class="petal mid p-m4"></div>
+                            <div class="petal mid p-m5"></div>
+                            <div class="petal mid p-m6"></div>
+                            <div class="petal mid p-m7"></div>
+                            <div class="petal mid p-m8"></div>
+                        </div>
+                        <!-- Layer 1: Inner petals -->
+                        <div class="petal-layer inner-layer">
+                            <div class="petal inner p-i1"></div>
+                            <div class="petal inner p-i2"></div>
+                            <div class="petal inner p-i3"></div>
+                            <div class="petal inner p-i4"></div>
+                            <div class="petal inner p-i5"></div>
+                            <div class="petal inner p-i6"></div>
+                        </div>
+                        <!-- Center -->
+                        <div class="flower-center">
+                            <div class="center-inner"></div>
+                            <div class="center-glow"></div>
+                        </div>
+                    </div>
+                    <p class="bloom-caption" id="bloomCaption">And from the storm, something beautiful always blooms.
+                    </p>
+                    <button id="btnContinue" class="btn-magnetic">
+                        <span class="btn-text">Continue</span>
+                        <span class="btn-glow"></span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 3: Timeline -->
+        <section id="scene3" class="scene">
+            <canvas id="particleCanvas3"></canvas>
+            <div class="scene3-scroll-wrapper" id="scene3Scroll">
+                <div class="scene3-content">
+                    <h2 class="section-title" id="timelineTitle">Your Birthday Itinerary</h2>
+                    <p class="section-subtitle" id="timelineSub">A day crafted just for you ✦</p>
+                    <div class="timeline" id="timeline">
+                        <div class="timeline-track">
+                            <div class="timeline-line" id="timelineLine"></div>
+                            <div class="timeline-dot-travel" id="travelDot"></div>
+                        </div>
+                        <div class="timeline-nodes">
+                            <div class="timeline-node" data-icon="☀️">
+                                <div class="node-dot"><span class="node-dot-ping"></span></div>
+                                <div class="node-card glass-card tilt-card">
+                                    <img class="node-moment-img" src="assets/gallery/moment1.jpg" alt="Getting Ready" loading="lazy">
+                                    <span class="node-time">14:00 PM</span>
+                                    <h3>Get ready to be picked up</h3>
+                                    <p>Make sure to dress up nicely later 🌸</p>
+                                    <span class="node-caption">Getting Ready ✦</span>
+                                </div>
+                            </div>
+                            <div class="timeline-node" data-icon="☕">
+                                <div class="node-dot"><span class="node-dot-ping"></span></div>
+                                <div class="node-card glass-card tilt-card right">
+                                    <img class="node-moment-img" src="assets/gallery/moment2.jpg" alt="The Pickup" loading="lazy">
+                                    <span class="node-time">16:50 PM</span>
+                                    <h3>picked up</h3>
+                                    <p>must be ready</p>
+                                    <span class="node-caption">The Pickup 🚗</span>
+                                </div>
+                            </div>
+                            <div class="timeline-node" data-icon="🍽️">
+                                <div class="node-dot"><span class="node-dot-ping"></span></div>
+                                <div class="node-card glass-card tilt-card">
+                                    <img class="node-moment-img" src="assets/gallery/moment3.jpg" alt="Alumbra Arrival" loading="lazy">
+                                    <span class="node-time">17:50 PM</span>
+                                    <h3>We've arrived at Alumbra</h3>
+                                    <p>A delicious meal at restaurant 🍝</p>
+                                    <span class="node-caption">Sweet Arrival 🌟</span>
+                                </div>
+                            </div>
+                            <div class="timeline-node" data-icon="🎭">
+                                <div class="node-dot"><span class="node-dot-ping"></span></div>
+                                <div class="node-card glass-card tilt-card right">
+                                    <img class="node-moment-img" src="assets/gallery/moment4.jpg" alt="Gift Time" loading="lazy">
+                                    <span class="node-time">18:30 PM</span>
+                                    <h3>Open the gifts and have dinner</h3>
+                                    <p>Open the gifts and take some beautiful photos 💃</p>
+                                    <span class="node-caption">Gift Time 🎁</span>
+                                </div>
+                            </div>
+                            <div class="timeline-node" data-icon="🌅">
+                                <div class="node-dot"><span class="node-dot-ping"></span></div>
+                                <div class="node-card glass-card tilt-card">
+                                    <img class="node-moment-img" src="assets/gallery/moment5.jpg" alt="Night Ride" loading="lazy">
+                                    <span class="node-time">20:00 PM</span>
+                                    <h3>Night Ride</h3>
+                                    <p>driving home at night</p>
+                                    <span class="node-caption">Night Ride 🌙</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-end-spacer"></div>
+                    <button id="btnGift" class="btn-magnetic timeline-btn">
+                        <span class="btn-text">Next Surprise</span>
+                        <span class="btn-glow"></span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE GALLERY: Photo Gallery (between Scene 3 and Scene 4) -->
+        <section id="sceneGallery" class="scene">
+            <canvas id="galleryCanvas"></canvas>
+            <div class="gallery-content">
+                <h2 class="section-title gallery-title" id="galleryTitle">Our Moments ✦</h2>
+                <div id="galleryGrid" class="gallery-grid"></div>
+                <button id="btnToGift" class="btn-magnetic">
+                    <span class="btn-text">Next Surprise</span>
+                    <span class="btn-glow"></span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Lightbox -->
+            <div class="gallery-lightbox" id="galleryLightbox">
+                <button class="lightbox-close" id="lightboxClose">✕</button>
+                <button class="lightbox-prev" id="lightboxPrev">❮</button>
+                <button class="lightbox-next" id="lightboxNext">❯</button>
+                <img class="lightbox-img" id="lightboxImg" src="" alt="Gallery photo">
+            </div>
+        </section>
+
+        <!-- SCENE 4: Gift Box -->
+        <section id="scene4" class="scene">
+            <canvas id="confettiCanvas"></canvas>
+            <div class="scene4-content">
+                <p class="gift-prompt" id="giftPrompt">Click to open your present!</p>
+                <div class="gift-box-wrapper tilt-card" id="giftBoxWrapper">
+                    <div class="gift-box" id="giftBox">
+                        <div class="gift-lid" id="giftLid">
+                            <div class="gift-bow">
+                                <div class="bow-loop left"></div>
+                                <div class="bow-loop right"></div>
+                                <div class="bow-knot"></div>
+                            </div>
+                        </div>
+                        <div class="gift-base">
+                            <div class="gift-ribbon-v"></div>
+                            <div class="gift-ribbon-h"></div>
+                            <div class="gift-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gift-reveal" id="giftReveal">
+                    <div class="gift-image-container">
+                        <div class="gift-glow"></div>
+                        <div class="gift-card-revealed glass-card">
+                            <span class="gift-emoji">🎁</span>
+                            <h3>A Special Gift Awaits You!</h3>
+                            <p>Something picked with all my love, just for you, my dear.</p>
+                        </div>
+                    </div>
+                    <div class="polaroid-stack" id="polaroidStack"></div>
+                    <button id="btnLetter" class="btn-magnetic">
+                        <span class="btn-text">One Last Thing...</span>
+                        <span class="btn-glow"></span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 5: Love Letter -->
+        <section id="scene5" class="scene">
+            <canvas id="firefliesCanvas"></canvas>
+            <div class="scene5-content">
+                <p class="letter-prompt" id="letterPrompt">A letter for you. (Click to open)</p>
+                <div class="envelope-wrapper" id="envelopeWrapper">
+                    <div class="envelope" id="envelope">
+                        <div class="envelope-back"></div>
+                        <div class="envelope-front"></div>
+                        <div class="envelope-flap" id="envelopeFlap"></div>
+                        <div class="envelope-seal" id="envelopeSeal">♥</div>
+                    </div>
+                </div>
+                <div class="letter-fullscreen" id="letterFullscreen">
+                    <div class="letter-paper glass-letter" id="letterPaper">
+                        <button class="letter-close" id="letterClose">✕</button>
+                        <div class="letter-content">
+                            <p class="letter-date" data-config-key="date">May 13, 2026</p>
+                            <h2 class="letter-greeting" data-config-key="greeting">My Dearest Angelina,</h2>
+                            <div class="letter-body" id="letterBody">
+                                <p>Happy 22nd Birthday, my love. 🎂</p>
+                                <p>On this beautiful day, I want you to know just how much you mean to me. Every moment
+                                    with you is a gift I never knew I needed. Your laughter is my favorite melody, your
+                                    smile lights up my darkest days.</p>
+                                <p>Through every storm we've weathered, through every challenge we've faced, you've been
+                                    my anchor, my safe place, and my greatest adventure all at once.</p>
+                                <p>You are not just a year older today and you are a year more beautiful, a year
+                                    stronger, and a year more incredible than I ever thought possible.</p>
+                                <p>I promise to keep making you laugh, to hold your hand through the hard times, and to
+                                    celebrate every single moment of joy with you.</p>
+                                <p>Here's to 22 and to every beautiful chapter that awaits us.</p>
+                                <p class="letter-closing">With all my love.</p>
+                                <p class="letter-signature" data-config-key="signature">Your BB♥</p>
+                            </div>
+                            <div class="letter-ornament">─── ✦ ───</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- ═══ KAWAII PETS ═══ -->
+        <div id="petLuna" class="pet pet-luna" title="Luna 🦊">
+            <svg viewBox="0 0 80 80" class="luna-svg">
+                <!-- Body -->
+                <ellipse cx="40" cy="50" rx="22" ry="18" fill="rgba(220,245,245,0.55)" stroke="rgba(64,224,208,0.4)"
+                    stroke-width="1" />
+                <!-- Head -->
+                <circle cx="40" cy="32" r="16" fill="rgba(230,250,250,0.6)" stroke="rgba(64,224,208,0.35)"
+                    stroke-width="1" />
+                <!-- Left ear -->
+                <polygon points="28,22 22,6 34,18" fill="rgba(64,224,208,0.7)" stroke="rgba(64,224,208,0.5)"
+                    stroke-width="0.8" />
+                <polygon points="29,20 25,10 33,18" fill="rgba(200,240,240,0.4)" />
+                <!-- Right ear -->
+                <polygon points="52,22 58,6 46,18" fill="rgba(64,224,208,0.7)" stroke="rgba(64,224,208,0.5)"
+                    stroke-width="0.8" />
+                <polygon points="51,20 55,10 47,18" fill="rgba(200,240,240,0.4)" />
+                <!-- Eyes -->
+                <ellipse class="luna-eye" cx="34" cy="31" rx="3" ry="3.5" fill="#0D2626" />
+                <circle cx="33" cy="30" r="1.2" fill="rgba(255,255,255,0.9)" />
+                <ellipse class="luna-eye" cx="46" cy="31" rx="3" ry="3.5" fill="#0D2626" />
+                <!-- Nose -->
+                <ellipse cx="40" cy="36" rx="2" ry="1.5" fill="rgba(64,224,208,0.8)" />
+                <!-- Mouth -->
+                <path d="M38 38 Q40 41 42 38" fill="none" stroke="rgba(64,224,208,0.5)" stroke-width="0.8" />
+                <!-- Blush -->
+                <ellipse cx="29" cy="35" rx="4" ry="2.5" fill="rgba(64,224,208,0.2)" />
+                <ellipse cx="51" cy="35" rx="4" ry="2.5" fill="rgba(64,224,208,0.2)" />
+                <!-- Tail -->
+                <path d="M58,52 Q72,40 68,28 Q65,35 60,42 Q56,48 58,52Z" fill="rgba(64,224,208,0.6)"
+                    stroke="rgba(64,224,208,0.4)" stroke-width="0.6" />
+                <path d="M62,38 Q68,30 66,24" fill="none" stroke="rgba(200,245,245,0.5)" stroke-width="2"
+                    stroke-linecap="round" />
+            </svg>
+            <span class="pet-name">Luna</span>
+        </div>
+
+        <div id="petMochi" class="pet pet-mochi" title="Mochi 🍡">
+            <div class="mochi-body">
+                <div class="mochi-face">
+                    <span class="mochi-eye left"></span>
+                    <span class="mochi-eye right"></span>
+                    <span class="mochi-blush left"></span>
+                    <span class="mochi-blush right"></span>
+                    <span class="mochi-mouth"></span>
+                </div>
+                <div class="mochi-highlight"></div>
+            </div>
+            <span class="pet-name">Mochi</span>
+        </div>
+
+        <div id="petTealo" class="pet pet-tealo" title="Tealo ✦">
+            <div class="tealo-body">
+                <svg viewBox="0 0 60 60" class="tealo-svg">
+                    <!-- Star body -->
+                    <polygon points="30,4 36,22 54,22 40,34 44,52 30,42 16,52 20,34 6,22 24,22"
+                        fill="rgba(64,224,208,0.75)" stroke="rgba(127,255,212,0.6)" stroke-width="1" />
+                    <!-- Inner star glow -->
+                    <polygon points="30,12 34,24 46,24 36,32 39,44 30,37 21,44 24,32 14,24 26,24"
+                        fill="rgba(127,255,212,0.4)" />
+                    <!-- Face -->
+                    <ellipse cx="25" cy="27" rx="2" ry="2.5" fill="#004D4D" />
+                    <circle cx="24.2" cy="26.2" r="0.9" fill="rgba(255,255,255,0.85)" />
+                    <ellipse cx="35" cy="27" rx="2" ry="2.5" fill="#004D4D" />
+                    <circle cx="34.2" cy="26.2" r="0.9" fill="rgba(255,255,255,0.85)" />
+                    <!-- Smile -->
+                    <path d="M27 31 Q30 35 33 31" fill="none" stroke="#004D4D" stroke-width="1"
+                        stroke-linecap="round" />
+                    <!-- Blush -->
+                    <ellipse cx="22" cy="30" rx="3" ry="1.8" fill="rgba(255,215,0,0.2)" />
+                    <ellipse cx="38" cy="30" rx="3" ry="1.8" fill="rgba(255,215,0,0.2)" />
+                </svg>
+                <div class="tealo-glow"></div>
+            </div>
+            <span class="pet-name">Tealo</span>
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Audio toggle -->
+    <button id="audioToggle" class="audio-toggle" title="Toggle Music">
+        <span class="audio-bars">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </span>
+    </button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
